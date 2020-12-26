@@ -1,6 +1,7 @@
 from aiohttp import ClientError, ClientSession
 import json
 import logging
+import re
 import time
 import urllib.request
 
@@ -12,8 +13,11 @@ DISCOGS_HEADERS = {
     "Authorization": "Discogs key={key},secret={secret}".format(
         key=DISCOGS_CONSUMER_KEY,
         secret=DISCOGS_CONSUMER_SECRET)
-    }
+}
 DISCOGS_ROOT_URL = 'https://api.discogs.com'
+DISCOGS_OMITTED_STRINGS = [
+    'EP'
+]
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -36,13 +40,12 @@ class Discogs(object):
         self.data = self._get_data_from_resource(master_url)
 
     def _search(self, trackname, artist, album):
-        query = "{trackname} {artist} {album}".format(
-            trackname=trackname,
-            artist=artist,
-            album=album)
+        queryparts = ' '.join([trackname, artist, album]).split()
+        queryparts = [ p for p in queryparts if p not in DISCOGS_OMITTED_STRINGS ]
+        query = '+'.join(queryparts)
         url = '{root}/database/search?q={query}'.format(
             root=DISCOGS_ROOT_URL,
-            query=query.replace(" ", "+"))
+            query=query)
 
         requestobj = urllib.request.Request(url, headers=DISCOGS_HEADERS)
 
