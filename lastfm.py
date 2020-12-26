@@ -3,11 +3,13 @@ import logging
 import time
 import urllib.request
 
+import settings
+
 
 
 LASTFM_ROOT_URL = 'http://ws.audioscrobbler.com/2.0'
-LASTFM_USER = 'zkutasi'
-LASTFM_APIKEY = 'e5a6214a47d5ca04790a7109d1079f51'
+LASTFM_USER = settings.LastFmConfig.LASTFM_USER
+LASTFM_APIKEY = settings.LastFmConfig.LASTFM_APIKEY
 LASTFM_RECENT_TRACKS_API_URL = '{root}/?method=user.getrecenttracks&user={user}&api_key={apikey}&limit={limit}&format=json'.format(
     root=LASTFM_ROOT_URL,
     user=LASTFM_USER,

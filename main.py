@@ -3,19 +3,20 @@ import logging
 import signal
 import time
 
+from discogs import Discogs
 from display import DisplayController
 from httpclient import HttpClient
 from lastfm import LastFm
-from discogs import Discogs
+import settings
 
 
-POLLING_INTERVAL = 10
+
 _LOGGER = logging.getLogger(__name__)
 
 
 
 def setup_logging():
-    log_level = logging.DEBUG
+    log_level = settings.GlobalConfig.LOG_LEVEL
     fmt = "%(asctime)s %(levelname)7s - %(message)s"
     logging.basicConfig(format=fmt, level=log_level)
 
@@ -34,7 +35,7 @@ async def main(loop):
     }
 
     while True:
-        if time.time() - data['lastfm'].last_update > POLLING_INTERVAL:
+        if time.time() - data['lastfm'].last_update > settings.LastFmConfig.LASTFM_POLLING_INTERVAL:
             await data['lastfm'].refresh()
             if data['lastfm'].update_required:
             	await data['discogs'].refresh(data['lastfm'].data)

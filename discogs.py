@@ -4,19 +4,22 @@ import logging
 import re
 import time
 import urllib.request
+import urllib.parse
+
+import settings
 
 
 
-DISCOGS_CONSUMER_KEY = 'cPxFEPpkMBOZpNzmEAob'
-DISCOGS_CONSUMER_SECRET = 'zYBfBGbBYJMmxuaESNLyMLKlBflRlLdq'
+DISCOGS_CONSUMER_KEY = settings.DiscogsConfig.DISCOGS_CONSUMER_KEY
+DISCOGS_CONSUMER_SECRET = settings.DiscogsConfig.DISCOGS_CONSUMER_SECRET
 DISCOGS_HEADERS = {
     "Authorization": "Discogs key={key},secret={secret}".format(
         key=DISCOGS_CONSUMER_KEY,
         secret=DISCOGS_CONSUMER_SECRET)
 }
 DISCOGS_ROOT_URL = 'https://api.discogs.com'
-DISCOGS_OMITTED_STRINGS = [
-    'EP'
+DISCOGS_OMITTED_WORDS = [
+    'EP', '-'
 ]
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,8 +44,9 @@ class Discogs(object):
 
     def _search(self, trackname, artist, album):
         queryparts = ' '.join([trackname, artist, album]).split()
-        queryparts = [ p for p in queryparts if p not in DISCOGS_OMITTED_STRINGS ]
-        query = '+'.join(queryparts)
+        queryparts = [ p for p in queryparts if p not in DISCOGS_OMITTED_WORDS ]
+        query = ' '.join(queryparts)
+        query = urllib.parse.quote_plus(query)
         url = '{root}/database/search?q={query}'.format(
             root=DISCOGS_ROOT_URL,
             query=query)

@@ -5,12 +5,14 @@ from PIL import Image, ImageFile, ImageTk
 import tkinter as tk
 from tkinter import font as tkFont
 
+import settings
 
 
-SCREEN_W = 1024
-SCREEN_H = 600
-THUMB_W = 500
-THUMB_H = 500
+
+SCREEN_W = settings.GlobalConfig.SCREEN_W
+SCREEN_H = settings.GlobalConfig.SCREEN_H
+THUMB_W = settings.GlobalConfig.THUMB_W
+THUMB_H = settings.GlobalConfig.THUMB_H
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -49,9 +51,7 @@ class DisplayController:
 
         self.track_name = tk.StringVar()
         self.artist_album_text = tk.StringVar()
-        self.track_name.set('TRACK NAME')
-        self.artist_album_text.set('DETAIL TEXT')
-
+        
         track_font = tkFont.Font(family="Helvetica", size=30)
         detail_font = tkFont.Font(family="Helvetica", size=15)
 
@@ -69,7 +69,7 @@ class DisplayController:
             font=track_font,
             fg="white",
             bg="black",
-            wraplength=1000,
+            wraplength=SCREEN_W,
             justify="center",
         )
         label_artist_album = tk.Label(
@@ -78,7 +78,7 @@ class DisplayController:
             font=detail_font,
             fg="white",
             bg="black",
-            wraplength=1000,
+            wraplength=SCREEN_W,
             justify="center",
         )
         self.label_albumart_detail.place(relx=0.5, y=THUMB_H / 2, anchor=tk.CENTER)
