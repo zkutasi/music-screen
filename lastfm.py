@@ -43,7 +43,7 @@ class LastFmData(object):
 class LastFm(object):
     def __init__(self):
         _LOGGER.debug('Using LastFM URL [{url}]'.format(url=LASTFM_RECENT_TRACKS_API_URL))
-        self.last_update = time.time() - 100
+        self.last_update = time.time() - 10*settings.LastFmConfig.LASTFM_POLLING_INTERVAL
         self.data = None
         self.update_required = True
 
