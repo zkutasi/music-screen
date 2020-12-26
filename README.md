@@ -18,4 +18,4 @@ You do not need much, everything is free here:
 - Discogs account
 - A screen to run it on... I use a Raspberry Pi 4
 
-Be sure to edit settings.py and provide your own accounts and preferences
+Be sure to create a settings.py and provide your own accounts and preferences in it (see the example file for syntax)
