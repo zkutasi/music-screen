@@ -93,12 +93,11 @@ class DisplayController:
     async def redraw(self, httpclient, data):
         pil_image = None
         
-        url = data['discogs'].data.image_url
-
-        image_data = await httpclient.get_image_data(url)
-
-        if image_data:
-            pil_image = Image.open(BytesIO(image_data))
+        if data['discogs'] and data['discogs'].data:
+            url = data['discogs'].data.image_url
+            image_data = await httpclient.get_image_data(url)
+            if image_data:
+                pil_image = Image.open(BytesIO(image_data))
         
         if pil_image is None:
             _LOGGER.warning("Image not available")
@@ -124,9 +123,9 @@ class DisplayController:
             image = image.resize((length, length), ImageTk.Image.LANCZOS)
             return ImageTk.PhotoImage(image)
 
-        self.album_image = resize_image(image, THUMB_W)
-
-        self.label_albumart_detail.configure(image=self.album_image)
+        if image:
+            self.album_image = resize_image(image, THUMB_W)
+            self.label_albumart_detail.configure(image=self.album_image)
 
         artist_album_text = ""
         display_trackname = lastfm_data.trackname
@@ -138,7 +137,7 @@ class DisplayController:
             detail_prefix = lastfm_data.artist
 
         artist_album_text = " • ".join(filter(None, [detail_prefix, detail_suffix]))
-        if discogs_data.label:
+        if discogs_data and discogs_data.label:
             artist_album_text += ' • {label}'.format(label=discogs_data.label)
 
         self.track_name.set(display_trackname)
