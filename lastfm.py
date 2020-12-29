@@ -20,12 +20,13 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class LastFmData(object):
-    def __init__(self, trackname, artist, album, image_url):
+    def __init__(self, trackname, artist, album, image_url, nowplaying):
         self.trackname = trackname
         self.artist = artist
         self.album = album
         self.image_url = image_url
         self.image_present = True
+        self.nowplaying = nowplaying
         if image_url == LASTFM_EMPTY_IMAGE_URL:
             self.image_present = False
 
@@ -52,6 +53,15 @@ class LastFm(object):
         self.update_required = (data != self.data)
         self.data = data
 
+    def _get_nowplaying(self, most_recent_track):
+        nowplaying = True
+        try:
+            attr = most_recent_track['@attr']['nowplaying']
+            nowplaying = True if attr == 'true' else False
+        except (KeyError, IndexError) as err:
+            nowplaying = False
+        return nowplaying
+
     def _lastplayed(self):
         url = LASTFM_RECENT_TRACKS_API_URL
         _LOGGER.debug('Refreshing from LastFM URL [{url}]'.format(
@@ -60,12 +70,13 @@ class LastFm(object):
 
         try:
             most_recent_track = obj['recenttracks']['track'][0]
-            _LOGGER.debug('Most Recent track JSON: {json}'.format(json=most_recent_track))
+            #_LOGGER.debug('Most Recent track JSON: {json}'.format(json=most_recent_track))
             trackname = most_recent_track['name']
             artist = most_recent_track['artist']['#text']
             album = most_recent_track['album']['#text']
             image_url = most_recent_track['image'][3]['#text']
-            return LastFmData(trackname, artist, album, image_url)
+            nowplaying = self._get_nowplaying(most_recent_track)
+            return LastFmData(trackname, artist, album, image_url, nowplaying)
         except (KeyError, IndexError) as err:
             _LOGGER.error('LastFM search failed to get meaningful results for URL [{url}]: {err}'.format(
                 url=url,

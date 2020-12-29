@@ -18,8 +18,9 @@ DISCOGS_HEADERS = {
         secret=DISCOGS_CONSUMER_SECRET)
 }
 DISCOGS_ROOT_URL = 'https://api.discogs.com'
-DISCOGS_OMITTED_WORDS = [
-    'EP', '-'
+DISCOGS_OMITTED_PHRASES = [
+    'EP', '-',
+    'Original Mix'
 ]
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,8 +48,11 @@ class Discogs(object):
             self.data = self._get_data_from_resource(resource_url)
 
     def _search(self, trackname, artist, album):
-        queryparts = ' '.join([trackname, artist, album]).split()
-        queryparts = [ p for p in queryparts if p not in DISCOGS_OMITTED_WORDS ]
+        queryparts = ' '.join([trackname, artist, album])
+        queryparts = queryparts.replace('(', '').replace(')', '')
+        for p in DISCOGS_OMITTED_PHRASES:
+            queryparts = queryparts.replace(p, '')
+        queryparts = queryparts.split()
         query = ' '.join(queryparts)
         query = urllib.parse.quote_plus(query)
         url = '{root}/database/search?q={query}'.format(

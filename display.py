@@ -91,61 +91,62 @@ class DisplayController:
         self.root.update()
 
     async def redraw(self, httpclient, data):
-        pil_image = None
-        
-        if data['discogs'] and data['discogs'].data:
-            url = data['discogs'].data.image_url
-            image_data = await httpclient.get_image_data(url)
-            if image_data:
-                pil_image = Image.open(BytesIO(image_data))
-        
-        if pil_image is None:
-            _LOGGER.warning("Image not available")
-
-        self._update(pil_image, data)
-
-    def _show_album(self):
-        self.curtain_frame.lower()
-        self.detail_frame.lift()
-        self.is_showing = True
-        self.root.update()
-
-    def _hide_album(self):
-        self.curtain_frame.lift()
-        self.is_showing = False
-        self.root.update()
-
-    def _update(self, image, data):
         lastfm_data = data['lastfm'].data
         discogs_data = data['discogs'].data
 
-        def resize_image(image, length):
-            image = image.resize((length, length), ImageTk.Image.LANCZOS)
-            return ImageTk.PhotoImage(image)
-
-        if image:
-            self.album_image = resize_image(image, THUMB_W)
-            self.label_albumart_detail.configure(image=self.album_image)
+        await self._redraw_image(data, httpclient)
 
         artist_album_text = "?"
         display_trackname = "?"
         if lastfm_data:
-            display_trackname = lastfm_data.trackname
-            
-            detail_prefix = None
-            detail_suffix = lastfm_data.album or None
+            if lastfm_data.nowplaying:
+                display_trackname = lastfm_data.trackname
+                
+                detail_prefix = None
+                detail_suffix = lastfm_data.album or None
 
-            if lastfm_data.artist != display_trackname:
-                detail_prefix = lastfm_data.artist
+                if lastfm_data.artist != display_trackname:
+                    detail_prefix = lastfm_data.artist
 
-            artist_album_text = " • ".join(filter(None, [detail_prefix, detail_suffix]))
-            if discogs_data and discogs_data.label:
-                artist_album_text += ' • {label}'.format(label=discogs_data.label)
+                artist_album_text = " • ".join(filter(None, [detail_prefix, detail_suffix]))
+                if discogs_data and discogs_data.label:
+                    artist_album_text += ' • {label}'.format(label=discogs_data.label)
+
+                self.curtain_frame.lower()
+                self.detail_frame.lift()
+                self.is_showing = True
+            else:
+                self.curtain_frame.lift()
+                self.is_showing = False
 
         self.track_name.set(display_trackname)
         self.artist_album_text.set(artist_album_text)
         self.root.update_idletasks()
-        self._show_album()
+        self.root.update()
+
+    async def _redraw_image(self, data, httpclient):
+        lastfm_data = data['lastfm'].data
+        discogs_data = data['discogs'].data
+        image = None
+
+        def resize_image(image, length):
+            image = image.resize((length, length), ImageTk.Image.LANCZOS)
+            return ImageTk.PhotoImage(image)
+        
+        if lastfm_data:
+            if lastfm_data.nowplaying:
+                if discogs_data and discogs_data:
+                    url = discogs_data.image_url
+                    image_data = await httpclient.get_image_data(url)
+                    if image_data:
+                        image = Image.open(BytesIO(image_data))
+                
+                if image is None:
+                    _LOGGER.warning("Image not available")
+
+                if image:
+                    self.album_image = resize_image(image, THUMB_W)
+                    self.label_albumart_detail.configure(image=self.album_image)
 
     def cleanup(self):
         pass
