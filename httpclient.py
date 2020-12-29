@@ -2,7 +2,7 @@ from aiohttp import ClientError, ClientSession
 import json
 import logging
 import urllib.request
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 
 
@@ -19,6 +19,11 @@ def get_json_from_url(url):
         _LOGGER.error('Got HTTP error for URL [{url}] :[{err}]'.format(
             url=url,
             err=err))
+    except URLError as err:
+        _LOGGER.error('Got error for URL [{url}] :[{err}]'.format(
+            url=url,
+            err=err))
+
     return json.loads(data)
 
 class HttpClient(object):
