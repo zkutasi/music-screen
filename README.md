@@ -10,6 +10,10 @@ Inspired by https://github.com/hankhank10/music-screen-api: However this project
 - Cross-searching the same from discogs.com and fetching a higher quality cover from there
 - Updating a screen with this "now playing" information
 
+# Limitations
+
+- The discogs.com search is taking the very first found match from the list, and sometimes that is not right... not sure if anything can be done about it though: the tool searches for artist-album-title alltogether and sometimes it is not uniquely identifying the release
+
 # Getting started
 
 You do not need much, everything is free here:

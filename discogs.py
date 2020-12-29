@@ -3,9 +3,9 @@ import json
 import logging
 import re
 import time
-import urllib.request
 import urllib.parse
 
+import httpclient
 import settings
 
 
@@ -38,6 +38,8 @@ class Discogs(object):
 
     async def refresh(self, lastfm_data):
         self.last_update = time.time()
+        if not lastfm_data:
+            return 
         resource_url = self._search(lastfm_data.trackname,
             lastfm_data.artist,
             lastfm_data.album)
@@ -55,27 +57,30 @@ class Discogs(object):
 
         requestobj = urllib.request.Request(url, headers=DISCOGS_HEADERS)
 
-        _LOGGER.debug('Calling URL [{url}] with Headers {headers}'.format(
+        _LOGGER.debug('Calling discogs URL [{url}] with Headers {headers}'.format(
             url=url,
             headers=DISCOGS_HEADERS))
-        data = urllib.request.urlopen(requestobj).read().decode()
-        obj = json.loads(data)
+        obj = httpclient.get_json_from_url(requestobj)
         try:
             return obj['results'][0]['resource_url']
         except (KeyError, IndexError):
             _LOGGER.error('Discogs search failed to get meaningful results for URL [{url}]'.format(
                 url=url))
-            return None
+        return None
 
     def _get_data_from_resource(self, url):
         requestobj = urllib.request.Request(url, headers=DISCOGS_HEADERS)
 
-        _LOGGER.debug('Calling URL [{url}] with Headers {headers}'.format(
+        _LOGGER.debug('Calling discogs URL [{url}] with Headers {headers}'.format(
             url=url,
             headers=DISCOGS_HEADERS))
-        data = urllib.request.urlopen(requestobj).read().decode()
-        obj = json.loads(data)
-
-        image_url = obj['images'][0]['resource_url'] if 'images' in obj else None
-        label = obj['labels'][0]['name'] if 'labels' in obj else None
-        return DiscogsData(image_url, label)
+        obj = httpclient.get_json_from_url(requestobj)
+        
+        try:
+            image_url = obj['images'][0]['resource_url'] if 'images' in obj else None
+            label = obj['labels'][0]['name'] if 'labels' in obj else None
+            return DiscogsData(image_url, label)
+        except (KeyError, IndexError):
+            _LOGGER.error('Discogs data fetch failed to get meaningful results for URL [{url}]'.format(
+                url=url))
+        return None

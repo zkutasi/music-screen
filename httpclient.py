@@ -1,11 +1,25 @@
 from aiohttp import ClientError, ClientSession
+import json
 import logging
+import urllib.request
+from urllib.error import HTTPError
 
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
+
+def get_json_from_url(url):
+    _LOGGER.debug('Calling URL [{url}]'.format(url=url))
+    data = '{}'
+    try:
+        data = urllib.request.urlopen(url).read().decode()
+    except HTTPError as err:
+        _LOGGER.error('Got HTTP error for URL [{url}] :[{err}]'.format(
+            url=url,
+            err=err))
+    return json.loads(data)
 
 class HttpClient(object):
     def __init__(self):

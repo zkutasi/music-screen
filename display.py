@@ -127,18 +127,20 @@ class DisplayController:
             self.album_image = resize_image(image, THUMB_W)
             self.label_albumart_detail.configure(image=self.album_image)
 
-        artist_album_text = ""
-        display_trackname = lastfm_data.trackname
+        artist_album_text = "?"
+        display_trackname = "?"
+        if lastfm_data:
+            display_trackname = lastfm_data.trackname
+            
+            detail_prefix = None
+            detail_suffix = lastfm_data.album or None
 
-        detail_prefix = None
-        detail_suffix = lastfm_data.album or None
+            if lastfm_data.artist != display_trackname:
+                detail_prefix = lastfm_data.artist
 
-        if lastfm_data.artist != display_trackname:
-            detail_prefix = lastfm_data.artist
-
-        artist_album_text = " • ".join(filter(None, [detail_prefix, detail_suffix]))
-        if discogs_data and discogs_data.label:
-            artist_album_text += ' • {label}'.format(label=discogs_data.label)
+            artist_album_text = " • ".join(filter(None, [detail_prefix, detail_suffix]))
+            if discogs_data and discogs_data.label:
+                artist_album_text += ' • {label}'.format(label=discogs_data.label)
 
         self.track_name.set(display_trackname)
         self.artist_album_text.set(artist_album_text)

@@ -1,8 +1,7 @@
-import json
 import logging
 import time
-import urllib.request
 
+import httpclient
 import settings
 
 
@@ -54,15 +53,19 @@ class LastFm(object):
         self.data = data
 
     def _lastplayed(self):
+        url = LASTFM_RECENT_TRACKS_API_URL
         _LOGGER.debug('Refreshing from LastFM URL [{url}]'.format(
-            url=LASTFM_RECENT_TRACKS_API_URL))
-        data = urllib.request.urlopen(LASTFM_RECENT_TRACKS_API_URL).read().decode()
-        obj = json.loads(data)
+            url=url))
+        obj = httpclient.get_json_from_url(url)
 
-        trackname = obj['recenttracks']['track'][0]['name']
-        artist = obj['recenttracks']['track'][0]['artist']['#text']
-        album = obj['recenttracks']['track'][0]['album']['#text']
-        image_url = obj['recenttracks']['track'][0]['image'][3]['#text']
-
-        return LastFmData(trackname, artist, album, image_url)
+        try:
+            trackname = obj['recenttracks']['track'][0]['name']
+            artist = obj['recenttracks']['track'][0]['artist']['#text']
+            album = obj['recenttracks']['track'][0]['album']['#text']
+            image_url = obj['recenttracks']['track'][0]['image'][3]['#text']
+            return LastFmData(trackname, artist, album, image_url)
+        except (KeyError, IndexError):
+            _LOGGER.error('LastFM search failed to get meaningful results for URL [{url}]'.format(
+                url=url))
+        return None
 
