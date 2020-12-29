@@ -63,9 +63,10 @@ class Discogs(object):
         obj = httpclient.get_json_from_url(requestobj)
         try:
             return obj['results'][0]['resource_url']
-        except (KeyError, IndexError):
-            _LOGGER.error('Discogs search failed to get meaningful results for URL [{url}]'.format(
-                url=url))
+        except (KeyError, IndexError) as err:
+            _LOGGER.error('Discogs search failed to get meaningful results for URL [{url}]: {err}'.format(
+                url=url,
+                err=err))
         return None
 
     def _get_data_from_resource(self, url):
@@ -80,7 +81,8 @@ class Discogs(object):
             image_url = obj['images'][0]['resource_url'] if 'images' in obj else None
             label = obj['labels'][0]['name'] if 'labels' in obj else None
             return DiscogsData(image_url, label)
-        except (KeyError, IndexError):
-            _LOGGER.error('Discogs data fetch failed to get meaningful results for URL [{url}]'.format(
-                url=url))
+        except (KeyError, IndexError) as err:
+            _LOGGER.error('Discogs data fetch failed to get meaningful results for URL [{url}]: {err}'.format(
+                url=url,
+                err=err))
         return None

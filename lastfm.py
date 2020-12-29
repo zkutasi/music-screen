@@ -59,13 +59,16 @@ class LastFm(object):
         obj = httpclient.get_json_from_url(url)
 
         try:
-            trackname = obj['recenttracks']['track'][0]['name']
-            artist = obj['recenttracks']['track'][0]['artist']['#text']
-            album = obj['recenttracks']['track'][0]['album']['#text']
-            image_url = obj['recenttracks']['track'][0]['image'][3]['#text']
+            most_recent_track = obj['recenttracks']['track'][0]
+            _LOGGER.debug('Most Recent track JSON: {json}'.format(json=most_recent_track))
+            trackname = most_recent_track['name']
+            artist = most_recent_track['artist']['#text']
+            album = most_recent_track['album']['#text']
+            image_url = most_recent_track['image'][3]['#text']
             return LastFmData(trackname, artist, album, image_url)
-        except (KeyError, IndexError):
-            _LOGGER.error('LastFM search failed to get meaningful results for URL [{url}]'.format(
-                url=url))
+        except (KeyError, IndexError) as err:
+            _LOGGER.error('LastFM search failed to get meaningful results for URL [{url}]: {err}'.format(
+                url=url,
+                err=err))
         return None
 
