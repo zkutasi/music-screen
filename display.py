@@ -50,7 +50,7 @@ class DisplayController:
         self.curtain_frame.grid(row=0, column=0, sticky="news")
 
         self.track_name = tk.StringVar()
-        self.artist_album_text = tk.StringVar()
+        self.artist_album = tk.StringVar()
         
         track_font = tkFont.Font(family="Helvetica", size=30)
         detail_font = tkFont.Font(family="Helvetica", size=15)
@@ -74,7 +74,7 @@ class DisplayController:
         )
         label_artist_album = tk.Label(
             self.detail_frame,
-            textvariable=self.artist_album_text,
+            textvariable=self.artist_album,
             font=detail_font,
             fg="white",
             bg="black",
@@ -97,15 +97,15 @@ class DisplayController:
         await self._redraw_image(data, httpclient)
 
         artist_album_text = "?"
-        display_trackname = "?"
+        trackname_text = "?"
         if lastfm_data:
             if lastfm_data.nowplaying:
-                display_trackname = lastfm_data.trackname
+                trackname_text = lastfm_data.trackname
                 
                 detail_prefix = None
                 detail_suffix = lastfm_data.album or None
 
-                if lastfm_data.artist != display_trackname:
+                if lastfm_data.artist != trackname_text:
                     detail_prefix = lastfm_data.artist
 
                 artist_album_text = " • ".join(filter(None, [detail_prefix, detail_suffix]))
@@ -119,8 +119,11 @@ class DisplayController:
                 self.curtain_frame.lift()
                 self.is_showing = False
 
-        self.track_name.set(display_trackname)
-        self.artist_album_text.set(artist_album_text)
+        _LOGGER.info('Listening to [{trackname}] from [{artist_album}]'.format(
+            trackname=trackname_text,
+            artist_album=artist_album_text))
+        self.track_name.set(trackname_text)
+        self.artist_album.set(artist_album_text)
         self.root.update_idletasks()
         self.root.update()
 
