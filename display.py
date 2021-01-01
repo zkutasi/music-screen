@@ -4,6 +4,8 @@ import os
 from PIL import Image, ImageFile, ImageTk
 import tkinter as tk
 from tkinter import font as tkFont
+import Xlib.display as XDisplay
+from Xlib.ext import dpms
 
 import settings
 
@@ -23,6 +25,22 @@ class DisplaySetupError(Exception):
 
 class DisplayController:
     def __init__(self, loop):
+        self.xdisplay = XDisplay.Display()
+        self.screen_saver_settings = self.xdisplay.get_screen_saver()
+        self.xdisplay.set_screen_saver(
+            timeout=0,
+            interval=0,
+            allow_exposures=True,
+            prefer_blank=False)
+        self.xdisplay.force_screen_saver(mode=XDisplay.X.ScreenSaverReset, onerror=print)
+        self.dmps_timeouts = self.xdisplay.dpms_get_timeouts()
+        self.xdisplay.dpms_set_timeouts(
+            standby_timeout=0,
+            suspend_timeout=0,
+            off_timeout=0)
+        self.xdisplay.dpms_force_level(dpms.DPMSModeOn)
+        self.xdisplay.sync()
+
         self.loop = loop
         
         self.album_image = None
@@ -153,4 +171,14 @@ class DisplayController:
                     self.label_albumart_detail.configure(image=self.album_image)
 
     def cleanup(self):
-        pass
+        _LOGGER.info('Reset display settings...')
+        self.xdisplay.set_screen_saver(
+            timeout=self.screen_saver_settings.timeout,
+            interval=self.screen_saver_settings.interval,
+            allow_exposures=self.screen_saver_settings.allow_exposures,
+            prefer_blank=self.screen_saver_settings.prefer_blanking)
+        self.xdisplay.dpms_set_timeouts(
+            standby_timeout=self.dmps_timeouts.standby_timeout,
+            suspend_timeout=self.dmps_timeouts.suspend_timeout,
+            off_timeout=self.dmps_timeouts.off_timeout)
+        self.xdisplay.sync()
