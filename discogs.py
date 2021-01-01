@@ -48,6 +48,7 @@ class Discogs(object):
             self.data = self._get_data_from_resource(resource_url)
 
     def _search(self, trackname, artist, album):
+        artist = '"{artist}"'.format(artist=artist)
         queryparts = ' '.join([trackname, artist, album])
         queryparts = queryparts.replace('(', '').replace(')', '')
         for p in DISCOGS_OMITTED_PHRASES:
