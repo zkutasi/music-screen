@@ -116,6 +116,7 @@ class DisplayController:
                 self.detail_frame.lift()
                 self.is_showing = True
             else:
+                _LOGGER.debug('Lifting curtain...')
                 self.curtain_frame.lift()
                 self.is_showing = False
 

@@ -11,7 +11,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def get_json_from_url(url):
-    _LOGGER.debug('Calling URL [{url}]'.format(url=url))
+    if isinstance(url, urllib.request.Request):
+        _LOGGER.debug('Calling URL [{url}]'.format(url=url.full_url))
+    else:
+        _LOGGER.debug('Calling URL [{url}]'.format(url=url))
     data = '{}'
     try:
         data = urllib.request.urlopen(url).read().decode()
