@@ -106,6 +106,7 @@ class DisplayController:
         self.detail_frame.grid_propagate(False)
 
         self.root.attributes("-fullscreen", True)
+        self.root.config(cursor="none")
         self.root.update()
 
     async def redraw(self, httpclient, data):
