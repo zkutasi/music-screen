@@ -32,7 +32,7 @@ class DisplayController:
             interval=0,
             allow_exposures=True,
             prefer_blank=False)
-        self.xdisplay.force_screen_saver(mode=XDisplay.X.ScreenSaverReset, onerror=print)
+        self.xdisplay.force_screen_saver(mode=XDisplay.X.ScreenSaverReset)
         self.dmps_timeouts = self.xdisplay.dpms_get_timeouts()
         self.xdisplay.dpms_set_timeouts(
             standby_timeout=0,
@@ -181,4 +181,5 @@ class DisplayController:
             standby_timeout=self.dmps_timeouts.standby_timeout,
             suspend_timeout=self.dmps_timeouts.suspend_timeout,
             off_timeout=self.dmps_timeouts.off_timeout)
+        self.xdisplay.force_screen_saver(mode=XDisplay.X.ScreenSaverReset)
         self.xdisplay.sync()
