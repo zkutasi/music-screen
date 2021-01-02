@@ -135,7 +135,7 @@ class DisplayController:
                 self.detail_frame.lift()
                 self.is_showing = True
             else:
-                _LOGGER.debug('Lifting curtain...')
+                _LOGGER.debug('Not playing anything at the moment...')
                 self.curtain_frame.lift()
                 self.is_showing = False
 
@@ -164,12 +164,13 @@ class DisplayController:
                     if image_data:
                         image = Image.open(BytesIO(image_data))
                 
-                if image is None:
+                if image:
+                    image = resize_image(image, THUMB_W)
+                else:
                     _LOGGER.warning("Image not available")
 
-                if image:
-                    self.album_image = resize_image(image, THUMB_W)
-                    self.label_albumart_detail.configure(image=self.album_image)
+        self.album_image = image
+        self.label_albumart_detail.configure(image=image)
 
     def cleanup(self):
         _LOGGER.info('Reset display settings...')
