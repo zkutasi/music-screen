@@ -181,5 +181,6 @@ class DisplayController:
             standby_timeout=self.dmps_timeouts.standby_timeout,
             suspend_timeout=self.dmps_timeouts.suspend_timeout,
             off_timeout=self.dmps_timeouts.off_timeout)
+        self.xdisplay.dpms_force_level(dpms.DPMSModeOn)
         self.xdisplay.force_screen_saver(mode=XDisplay.X.ScreenSaverReset)
         self.xdisplay.sync()
