@@ -44,6 +44,7 @@ class Discogs(object):
         resource_url = self._search(lastfm_data.trackname,
             lastfm_data.artist,
             lastfm_data.album)
+        self.data = None
         if resource_url:
             self.data = self._get_data_from_resource(resource_url)
 
