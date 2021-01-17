@@ -2,6 +2,7 @@ from io import BytesIO
 import logging
 import os
 from PIL import Image, ImageFile, ImageTk
+import signal
 import tkinter as tk
 from tkinter import font as tkFont
 import Xlib.display as XDisplay
@@ -25,6 +26,7 @@ class DisplaySetupError(Exception):
 
 class DisplayController:
     def __init__(self, loop):
+        _LOGGER.info('Initializing Display...')
         self.xdisplay = XDisplay.Display()
         self.screen_saver_settings = self.xdisplay.get_screen_saver()
         self.xdisplay.set_screen_saver(
@@ -60,6 +62,7 @@ class DisplayController:
                 raise DisplaySetupError
 
         self.root.geometry(f"{SCREEN_W}x{SCREEN_H}")
+        self.root.bind("<Double-Button-1>", self.double_click_event)
 
         self.detail_frame = tk.Frame(self.root, bg="black", width=SCREEN_W, height=SCREEN_H)
         self.detail_frame.grid(row=0, column=0, sticky="news")
@@ -109,6 +112,10 @@ class DisplayController:
         self.root.config(cursor="none")
         self.root.update()
 
+    def double_click_event(self, event):
+        _LOGGER.info('Exiting...')
+        os.kill(os.getpid(), signal.SIGQUIT)
+
     async def redraw(self, httpclient, data):
         lastfm_data = data['lastfm'].data
         discogs_data = data['discogs'].data
@@ -135,7 +142,7 @@ class DisplayController:
                 self.detail_frame.lift()
                 self.is_showing = True
             else:
-                _LOGGER.debug('Not playing anything at the moment...')
+                _LOGGER.info('Not playing anything at the moment...')
                 self.curtain_frame.lift()
                 self.is_showing = False
 
@@ -144,6 +151,9 @@ class DisplayController:
             artist_album=artist_album_text))
         self.track_name.set(trackname_text)
         self.artist_album.set(artist_album_text)
+        self.update()
+
+    def update(self):
         self.root.update_idletasks()
         self.root.update()
 

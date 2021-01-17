@@ -3,17 +3,17 @@ import logging
 
 
 class GlobalConfig(object):
-	LOG_LEVEL = logging.INFO
-	SCREEN_W = 1024
-	SCREEN_H = 600
-	THUMB_W = 500
-	THUMB_H = 500
+    LOG_LEVEL = logging.INFO
+    SCREEN_W = 1024
+    SCREEN_H = 600
+    THUMB_W = 500
+    THUMB_H = 500
 
 class DiscogsConfig(object):
-	DISCOGS_CONSUMER_KEY = 'XXX'
-	DISCOGS_CONSUMER_SECRET = 'XXX'
+    DISCOGS_CONSUMER_KEY = 'XXX'
+    DISCOGS_CONSUMER_SECRET = 'XXX'
 
 class LastFmConfig(object):
-	LASTFM_USER = 'XXX'
-	LASTFM_APIKEY = 'XXX'
-	LASTFM_POLLING_INTERVAL = 10
+    LASTFM_USER = 'XXX'
+    LASTFM_APIKEY = 'XXX'
+    LASTFM_POLLING_INTERVAL = 10
