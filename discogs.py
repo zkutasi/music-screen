@@ -5,6 +5,7 @@ import re
 import time
 import urllib.parse
 
+from datamodel import UnifiedData
 import httpclient
 import settings
 
@@ -26,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 
-class DiscogsData(object):
+class DiscogsData(UnifiedData):
     def __init__(self, image_url, label):
         self.image_url = image_url
         self.label = label
@@ -34,19 +35,16 @@ class DiscogsData(object):
 
 class Discogs(object):
     def __init__(self):
-        self.last_update = time.time()
-        self.data = None
+        self.enabled = settings.GlobalConfig.ENABLE_DISCOGS
+        if self.enabled:
+            self.last_update = time.time()
 
-    async def refresh(self, lastfm_data):
+    async def enrich(self, data):
         self.last_update = time.time()
-        if not lastfm_data:
-            return 
-        resource_url = self._search(lastfm_data.trackname,
-            lastfm_data.artist,
-            lastfm_data.album)
-        self.data = None
-        if resource_url:
-            self.data = self._get_data_from_resource(resource_url)
+        if data and data.nowplaying:
+            resource_url = self._search(data.trackname, data.artist, data.album)
+            if resource_url:
+                self._get_data_from_resource(resource_url, data)
 
     def _search(self, trackname, artist, album):
         artist = '"{artist}"'.format(artist=artist)
@@ -62,10 +60,6 @@ class Discogs(object):
             query=query)
 
         requestobj = urllib.request.Request(url, headers=DISCOGS_HEADERS)
-
-        _LOGGER.debug('Calling discogs URL [{url}] with Headers {headers}'.format(
-            url=url,
-            headers=DISCOGS_HEADERS))
         obj = httpclient.get_json_from_url(requestobj)
         try:
             return obj['results'][0]['resource_url']
@@ -75,20 +69,16 @@ class Discogs(object):
                 err=err))
         return None
 
-    def _get_data_from_resource(self, url):
+    def _get_data_from_resource(self, url, data):
         requestobj = urllib.request.Request(url, headers=DISCOGS_HEADERS)
-
-        _LOGGER.debug('Calling discogs URL [{url}] with Headers {headers}'.format(
-            url=url,
-            headers=DISCOGS_HEADERS))
         obj = httpclient.get_json_from_url(requestobj)
         
         try:
             image_url = obj['images'][0]['resource_url'] if 'images' in obj else None
             label = obj['labels'][0]['name'] if 'labels' in obj else None
-            return DiscogsData(image_url, label)
+            data.image_url = image_url
+            data.label = label
         except (KeyError, IndexError) as err:
             _LOGGER.error('Discogs data fetch failed to get meaningful results for URL [{url}]: {err}'.format(
                 url=url,
                 err=err))
-        return None

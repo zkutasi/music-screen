@@ -1,6 +1,7 @@
 import logging
 import time
 
+from datamodel import UnifiedData
 import httpclient
 import settings
 
@@ -19,39 +20,22 @@ _LOGGER = logging.getLogger(__name__)
 
 
 
-class LastFmData(object):
-    def __init__(self, trackname, artist, album, image_url, nowplaying):
-        self.trackname = trackname
-        self.artist = artist
-        self.album = album
-        self.image_url = image_url
-        self.image_present = True
-        self.nowplaying = nowplaying
-        if image_url == LASTFM_EMPTY_IMAGE_URL:
-            self.image_present = False
-
-    def __eq__(self, other):
-        if isinstance(other, LastFmData):
-            return self.__dict__ == other.__dict__
-        return False
-
-    def __repr__(self):
-        return str(self.__dict__)
-
-
-
 class LastFm(object):
     def __init__(self):
-        _LOGGER.debug('Using LastFM URL [{url}]'.format(url=LASTFM_RECENT_TRACKS_API_URL))
-        self.last_update = time.time() - 10*settings.LastFmConfig.LASTFM_POLLING_INTERVAL
-        self.data = None
-        self.update_required = True
+        self.enabled = settings.GlobalConfig.ENABLE_LASTFM
+        if self.enabled:
+            _LOGGER.debug('Using LastFM URL [{url}]'.format(url=LASTFM_RECENT_TRACKS_API_URL))
+            self.polling_interval = settings.LastFmConfig.LASTFM_POLLING_INTERVAL
+            self.last_update = time.time() - 10*self.polling_interval
+            self.data = None
+            self.enrichment_required = True
 
     async def refresh(self):
         self.last_update = time.time()
         data = self._lastplayed()
-        self.update_required = (data != self.data)
+        self.enrichment_required = (data != self.data)
         self.data = data
+        return data
 
     def _get_nowplaying(self, most_recent_track):
         nowplaying = True
@@ -75,8 +59,15 @@ class LastFm(object):
             artist = most_recent_track['artist']['#text']
             album = most_recent_track['album']['#text']
             image_url = most_recent_track['image'][3]['#text']
+            if image_url == LASTFM_EMPTY_IMAGE_URL:
+                image_url = None
             nowplaying = self._get_nowplaying(most_recent_track)
-            return LastFmData(trackname, artist, album, image_url, nowplaying)
+            return UnifiedData( trackname=trackname,
+                                artist=artist,
+                                album=album,
+                                label=None,
+                                image_url=image_url,
+                                nowplaying=nowplaying)
         except (KeyError, IndexError) as err:
             _LOGGER.error('LastFM search failed to get meaningful results for URL [{url}]: {err}'.format(
                 url=url,

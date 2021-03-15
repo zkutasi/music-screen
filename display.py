@@ -27,6 +27,7 @@ class DisplaySetupError(Exception):
 class DisplayController:
     def __init__(self, loop):
         _LOGGER.info('Initializing Display...')
+        self.data = None
         self.xdisplay = XDisplay.Display()
         self.screen_saver_settings = self.xdisplay.get_screen_saver()
         self.xdisplay.set_screen_saver(
@@ -117,40 +118,40 @@ class DisplayController:
         os.kill(os.getpid(), signal.SIGQUIT)
 
     async def redraw(self, httpclient, data):
-        lastfm_data = data['lastfm'].data
-        discogs_data = data['discogs'].data
+        if data == self.data:
+            return
 
         await self._redraw_image(data, httpclient)
 
         artist_album_text = "?"
         trackname_text = "?"
-        if lastfm_data:
-            if lastfm_data.nowplaying:
-                trackname_text = lastfm_data.trackname
-                
-                detail_prefix = None
-                detail_suffix = lastfm_data.album or None
+        if data.nowplaying:
+            trackname_text = data.trackname
+            
+            detail_prefix = None
+            detail_suffix = data.album or None
 
-                if lastfm_data.artist != trackname_text:
-                    detail_prefix = lastfm_data.artist
+            if data.artist != trackname_text:
+                detail_prefix = data.artist
 
-                artist_album_text = " • ".join(filter(None, [detail_prefix, detail_suffix]))
-                if discogs_data and discogs_data.label:
-                    artist_album_text += ' • {label}'.format(label=discogs_data.label)
+            artist_album_text = " • ".join(filter(None, [detail_prefix, detail_suffix]))
+            if data.label:
+                artist_album_text += ' • {label}'.format(label=data.label)
 
-                self.curtain_frame.lower()
-                self.detail_frame.lift()
-                self.is_showing = True
-            else:
-                _LOGGER.info('Not playing anything at the moment...')
-                self.curtain_frame.lift()
-                self.is_showing = False
+            self.curtain_frame.lower()
+            _LOGGER.info('Listening to [{trackname}] from [{artist_album}]'.format(
+                trackname=trackname_text,
+                artist_album=artist_album_text))
+            self.detail_frame.lift()
+            self.is_showing = True
+        else:
+            _LOGGER.info('Not listening to anything at the moment...')
+            self.curtain_frame.lift()
+            self.is_showing = False
 
-        _LOGGER.info('Listening to [{trackname}] from [{artist_album}]'.format(
-            trackname=trackname_text,
-            artist_album=artist_album_text))
         self.track_name.set(trackname_text)
         self.artist_album.set(artist_album_text)
+        self.data = data
         self.update()
 
     def update(self):
@@ -158,26 +159,21 @@ class DisplayController:
         self.root.update()
 
     async def _redraw_image(self, data, httpclient):
-        lastfm_data = data['lastfm'].data
-        discogs_data = data['discogs'].data
         image = None
 
         def resize_image(image, length):
             image = image.resize((length, length), ImageTk.Image.LANCZOS)
             return ImageTk.PhotoImage(image)
         
-        if lastfm_data:
-            if lastfm_data.nowplaying:
-                if discogs_data and discogs_data:
-                    url = discogs_data.image_url
-                    image_data = await httpclient.get_image_data(url)
-                    if image_data:
-                        image = Image.open(BytesIO(image_data))
-                
-                if image:
-                    image = resize_image(image, THUMB_W)
-                else:
-                    _LOGGER.warning("Image not available")
+        if data.nowplaying:
+            image_data = await httpclient.get_image_data(data.image_url)
+            if image_data:
+                image = Image.open(BytesIO(image_data))
+        
+            if image:
+                image = resize_image(image, THUMB_W)
+            else:
+                _LOGGER.warning("Image not available")
 
         self.album_image = image
         self.label_albumart_detail.configure(image=image)

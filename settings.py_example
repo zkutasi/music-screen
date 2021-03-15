@@ -8,6 +8,9 @@ class GlobalConfig(object):
     SCREEN_H = 600
     THUMB_W = 500
     THUMB_H = 500
+    ENABLE_LASTFM = True
+    ENABLE_EMBY = False
+    ENABLE_DISCOGS = True
 
 class DiscogsConfig(object):
     DISCOGS_CONSUMER_KEY = 'XXX'
@@ -17,3 +20,10 @@ class LastFmConfig(object):
     LASTFM_USER = 'XXX'
     LASTFM_APIKEY = 'XXX'
     LASTFM_POLLING_INTERVAL = 10
+
+class EmbyConfig(object):
+    EMBY_POLLING_INTERVAL = 5
+    EMBY_ROOT_URL = 'http://htpc.home:8096'
+    EMBY_USER = 'XXX'
+    EMBY_PWD = 'XXX'
+    EMBY_PLAYING_CLIENT = 'Kodi EmbyCon'

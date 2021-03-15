@@ -10,14 +10,22 @@ _LOGGER = logging.getLogger(__name__)
 
 
 
-def get_json_from_url(url):
-    if isinstance(url, urllib.request.Request):
-        _LOGGER.debug('Calling URL [{url}]'.format(url=url.full_url))
-    else:
-        _LOGGER.debug('Calling URL [{url}]'.format(url=url))
-    data = '{}'
+def get_json_from_url(request_obj):
+    url = request_obj
+    headers=()
+    data = None
+    if isinstance(request_obj, urllib.request.Request):
+        url = request_obj.full_url
+        headers = request_obj.header_items()
+        data = request_obj.data
+    _LOGGER.debug('Calling URL [{url}] with headers [{headers}]'.format(
+        url=url,
+        headers=headers))
+    result = "{}"
     try:
-        data = urllib.request.urlopen(url).read().decode()
+        if data:
+            data = bytes(json.dumps(data), encoding="utf-8")
+        result = urllib.request.urlopen(request_obj, data=data).read().decode()
     except HTTPError as err:
         _LOGGER.error('Got HTTP error for URL [{url}] :[{err}]'.format(
             url=url,
@@ -27,7 +35,7 @@ def get_json_from_url(url):
             url=url,
             err=err))
 
-    return json.loads(data)
+    return json.loads(result)
 
 class HttpClient(object):
     def __init__(self):

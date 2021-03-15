@@ -5,6 +5,7 @@ import time
 
 from discogs import Discogs
 from display import DisplayController
+from emby import Emby
 from httpclient import HttpClient
 from lastfm import LastFm
 import settings
@@ -12,6 +13,7 @@ import settings
 
 
 _LOGGER = logging.getLogger(__name__)
+
 
 
 
@@ -29,16 +31,23 @@ async def main(loop):
     for signame in ('SIGINT', 'SIGTERM', 'SIGQUIT'):
         loop.add_signal_handler(getattr(signal, signame), lambda: asyncio.ensure_future(cleanup(loop, display, httpclient)))
 
-    data = {
-        'lastfm': LastFm(),
-        'discogs': Discogs()
+    data_modules = {
+        'parsers': {
+            'emby': Emby(),
+            'lastfm': LastFm()
+        },
+        'enrichers': {
+            'discogs': Discogs()
+        }
     }
 
     while True:
-        if time.time() - data['lastfm'].last_update > settings.LastFmConfig.LASTFM_POLLING_INTERVAL:
-            await data['lastfm'].refresh()
-            if data['lastfm'].update_required:
-                await data['discogs'].refresh(data['lastfm'].data)
+        for parser in [ p for _, p in data_modules['parsers'].items() if p.enabled ]:
+            if time.time() - parser.last_update > parser.polling_interval:
+                data = await parser.refresh()
+                if parser.enrichment_required:
+                    for enricher in [ e for _, e in data_modules['enrichers'].items() if e.enabled ]:
+                        await enricher.enrich(data)
                 await display.redraw(httpclient, data)
         display.update()
         await asyncio.sleep(1)
