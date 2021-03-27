@@ -138,15 +138,15 @@ class DisplayController:
             if data.label:
                 artist_album_text += ' • {label}'.format(label=data.label)
 
-            self.curtain_frame.lower()
+            self.curtain_frame.lower(self.detail_frame)
             _LOGGER.info('Listening to [{trackname}] from [{artist_album}]'.format(
                 trackname=trackname_text,
                 artist_album=artist_album_text))
-            self.detail_frame.lift()
+            self.detail_frame.lift(self.curtain_frame)
             self.is_showing = True
         else:
             _LOGGER.info('Not listening to anything at the moment...')
-            self.curtain_frame.lift()
+            self.curtain_frame.lift(self.detail_frame)
             self.is_showing = False
 
         self.track_name.set(trackname_text)
