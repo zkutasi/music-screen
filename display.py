@@ -10,6 +10,7 @@ from tkinter import font as tkFont
 import Xlib.display as XDisplay
 from Xlib.ext import dpms
 
+import openweather
 import settings
 
 
@@ -18,7 +19,9 @@ SCREEN_W = settings.GlobalConfig.SCREEN_W
 SCREEN_H = settings.GlobalConfig.SCREEN_H
 THUMB_W = settings.GlobalConfig.THUMB_W
 THUMB_H = settings.GlobalConfig.THUMB_H
+MARGIN = 10
 CLOCK_SIZE = 100
+WEATHER_SIZE = 30
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -74,13 +77,24 @@ class DisplayController:
         # Set up the curtain frame
         self.idle_last_update = time.time()
         clock_font = tkFont.Font(family="Helvetica", size=CLOCK_SIZE)
+        weather_font = tkFont.Font(family="Helvetica", size=WEATHER_SIZE)
         
         self.clock_time = tk.StringVar()
+        self.weather_details = tk.StringVar()
         
         self.clock = tk.Label(
             self.curtain_frame,
             textvariable=self.clock_time,
             font=clock_font,
+            borderwidth=0,
+            highlightthickness=0,
+            fg="white",
+            bg="black"
+        )
+        self.weather = tk.Label(
+            self.curtain_frame,
+            textvariable=self.weather_details,
+            font=weather_font,
             borderwidth=0,
             highlightthickness=0,
             fg="white",
@@ -140,14 +154,28 @@ class DisplayController:
     async def redraw_idle(self):
         if not settings.GlobalConfig.ENABLE_CLOCK:
             return
-        
+
         self.idle_last_update = time.time()
         if not self.is_showing:
             self.clock_time.set(time.strftime('%H:%M'))
+            clock_x = random.randint(MARGIN, SCREEN_W-self.clock.winfo_width()-MARGIN)
+            clock_y = random.randint(MARGIN, SCREEN_H-self.clock.winfo_height()-WEATHER_SIZE-MARGIN)
             self.clock.place(
-                x=random.randint(10, SCREEN_W-self.clock.winfo_width()-10),
-                y=random.randint(10, SCREEN_H-self.clock.winfo_height()-10)
+                x=clock_x,
+                y=clock_y
             )
+
+            if settings.GlobalConfig.ENABLE_WEATHER:
+                weather_data = openweather.get_weather_for_city()
+                self.weather_details.set("{temp}{units} ({desc})".format(
+                    temp=int(weather_data['main']['temp']),
+                    units=u'\u2103' if settings.OpenWeatherConfig.OPENWEATHER_UNITS == 'metric' else u'\u2109',
+                    desc=', '.join([ s['description'] for s in weather_data['weather'] ])
+                ))
+                self.weather.place(
+                    x=clock_x,
+                    y=clock_y+CLOCK_SIZE+WEATHER_SIZE
+                )
 
     async def redraw(self, httpclient, data):
         if data == self.data:

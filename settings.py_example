@@ -12,6 +12,7 @@ class GlobalConfig(object):
     ENABLE_EMBY = False
     ENABLE_DISCOGS = True
     ENABLE_CLOCK = True
+    ENABLE_WEATHER = True
     IDLE_REDRAW_INTERVAL = 10
 
 class DiscogsConfig(object):
@@ -29,3 +30,8 @@ class EmbyConfig(object):
     EMBY_USER = 'XXX'
     EMBY_PWD = 'XXX'
     EMBY_PLAYING_CLIENT = 'Kodi EmbyCon'
+
+class OpenWeatherConfig(object):
+    OPENWEATHER_APIKEY = 'XXX'
+    OPENWEATHER_CITY = 'Budapest'
+    OPENWEATHER_UNITS = 'metric'
