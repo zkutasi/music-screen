@@ -2,7 +2,9 @@ from io import BytesIO
 import logging
 import os
 from PIL import Image, ImageFile, ImageTk
+import random
 import signal
+import time
 import tkinter as tk
 from tkinter import font as tkFont
 import Xlib.display as XDisplay
@@ -16,6 +18,7 @@ SCREEN_W = settings.GlobalConfig.SCREEN_W
 SCREEN_H = settings.GlobalConfig.SCREEN_H
 THUMB_W = settings.GlobalConfig.THUMB_W
 THUMB_H = settings.GlobalConfig.THUMB_H
+CLOCK_SIZE = 100
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -65,11 +68,28 @@ class DisplayController:
         self.root.geometry(f"{SCREEN_W}x{SCREEN_H}")
         self.root.bind("<Double-Button-1>", self.double_click_event)
 
-        self.detail_frame = tk.Frame(self.root, bg="black", width=SCREEN_W, height=SCREEN_H)
-        self.detail_frame.grid(row=0, column=0, sticky="news")
-
         self.curtain_frame = tk.Frame(self.root, bg="black", width=SCREEN_W, height=SCREEN_H)
         self.curtain_frame.grid(row=0, column=0, sticky="news")
+
+        # Set up the curtain frame
+        self.idle_last_update = time.time()
+        clock_font = tkFont.Font(family="Helvetica", size=CLOCK_SIZE)
+        
+        self.clock_time = tk.StringVar()
+        
+        self.clock = tk.Label(
+            self.curtain_frame,
+            textvariable=self.clock_time,
+            font=clock_font,
+            borderwidth=0,
+            highlightthickness=0,
+            fg="white",
+            bg="black"
+        )
+
+        # Set up the details frame
+        self.detail_frame = tk.Frame(self.root, bg="black", width=SCREEN_W, height=SCREEN_H)
+        self.detail_frame.grid(row=0, column=0, sticky="news")
 
         self.track_name = tk.StringVar()
         self.artist_album = tk.StringVar()
@@ -83,7 +103,7 @@ class DisplayController:
             borderwidth=0,
             highlightthickness=0,
             fg="white",
-            bg="black",
+            bg="black"
         )
         label_track = tk.Label(
             self.detail_frame,
@@ -92,7 +112,7 @@ class DisplayController:
             fg="white",
             bg="black",
             wraplength=SCREEN_W,
-            justify="center",
+            justify="center"
         )
         label_artist_album = tk.Label(
             self.detail_frame,
@@ -101,7 +121,7 @@ class DisplayController:
             fg="white",
             bg="black",
             wraplength=SCREEN_W,
-            justify="center",
+            justify="center"
         )
         self.label_albumart_detail.place(relx=0.5, y=THUMB_H / 2, anchor=tk.CENTER)
         label_track.place(relx=0.5, y=THUMB_H + 10, anchor=tk.N)
@@ -116,6 +136,18 @@ class DisplayController:
     def double_click_event(self, event):
         _LOGGER.info('Exiting...')
         os.kill(os.getpid(), signal.SIGQUIT)
+
+    async def redraw_idle(self):
+        if not settings.GlobalConfig.ENABLE_CLOCK:
+            return
+        
+        self.idle_last_update = time.time()
+        if not self.is_showing:
+            self.clock_time.set(time.strftime('%H:%M'))
+            self.clock.place(
+                x=random.randint(10, SCREEN_W-self.clock.winfo_width()-10),
+                y=random.randint(10, SCREEN_H-self.clock.winfo_height()-10)
+            )
 
     async def redraw(self, httpclient, data):
         if data == self.data:

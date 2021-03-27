@@ -18,7 +18,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 
-
 def setup_logging():
     log_level = settings.GlobalConfig.LOG_LEVEL
     #fmt = "%(asctime)s %(levelname)7s - %(message)s"
@@ -50,6 +49,8 @@ async def main(loop):
     }
 
     while True:
+        if time.time() - display.idle_last_update > settings.GlobalConfig.IDLE_REDRAW_INTERVAL:
+            await display.redraw_idle()
         for parser in [ p for _, p in data_modules['parsers'].items() if p.enabled ]:
             if time.time() - parser.last_update > parser.polling_interval:
                 data = await parser.refresh()

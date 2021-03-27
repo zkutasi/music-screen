@@ -11,6 +11,8 @@ class GlobalConfig(object):
     ENABLE_LASTFM = True
     ENABLE_EMBY = False
     ENABLE_DISCOGS = True
+    ENABLE_CLOCK = True
+    IDLE_REDRAW_INTERVAL = 10
 
 class DiscogsConfig(object):
     DISCOGS_CONSUMER_KEY = 'XXX'
