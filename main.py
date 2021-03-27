@@ -1,6 +1,8 @@
 import asyncio
 import logging
+import logging.handlers
 import signal
+import sys
 import time
 
 from discogs import Discogs
@@ -19,8 +21,14 @@ _LOGGER = logging.getLogger(__name__)
 
 def setup_logging():
     log_level = settings.GlobalConfig.LOG_LEVEL
-    fmt = "%(asctime)s %(levelname)7s - %(message)s"
-    logging.basicConfig(format=fmt, level=log_level)
+    #fmt = "%(asctime)s %(levelname)7s - %(message)s"
+    fmt = "%(levelname)7s - %(message)s"
+    logging.basicConfig(
+        format=fmt,
+        level=log_level,
+        handlers=[
+            logging.handlers.SysLogHandler(address='/dev/log')
+        ])
 
 async def main(loop):
     setup_logging()
