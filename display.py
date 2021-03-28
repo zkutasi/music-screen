@@ -225,7 +225,7 @@ class DisplayController:
             image = image.resize((length, length), ImageTk.Image.LANCZOS)
             return ImageTk.PhotoImage(image)
         
-        if data.nowplaying:
+        if data and data.nowplaying:
             image_data = await httpclient.get_image_data(data.image_url)
             if image_data:
                 image = Image.open(BytesIO(image_data))
