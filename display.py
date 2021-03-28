@@ -178,7 +178,7 @@ class DisplayController:
                 )
 
     async def redraw(self, httpclient, data):
-        if data == self.data:
+        if data is None or data == self.data:
             return
 
         await self._redraw_image(data, httpclient)
@@ -225,7 +225,7 @@ class DisplayController:
             image = image.resize((length, length), ImageTk.Image.LANCZOS)
             return ImageTk.PhotoImage(image)
         
-        if data and data.nowplaying:
+        if data.nowplaying:
             image_data = await httpclient.get_image_data(data.image_url)
             if image_data:
                 image = Image.open(BytesIO(image_data))
