@@ -87,7 +87,7 @@ class Emby(object):
                                     label=None,
                                     image_url=None,
                                     nowplaying=False)
-        except (KeyError, IndexError) as err:
+        except (KeyError, IndexError, StopIteration) as err:
             _LOGGER.error('Emby search failed to get meaningful results: {err}'.format(
                 err=err))
         return None
