@@ -55,12 +55,12 @@ class Emby(object):
 
     async def refresh(self):
         self.last_update = time.time()
-        data = self._get_nowplaying()
+        data = self._get_nowplaying_audio()
         self.enrichment_required = (data != self.data)
         self.data = data
         return data
 
-    def _get_nowplaying(self):
+    def _get_nowplaying_audio(self):
         headers = {
             'X-Emby-Token': self.access_token
         }
@@ -70,23 +70,31 @@ class Emby(object):
         try:
             playing_client = next( c for c in obj if c['Client'] == settings.EmbyConfig.EMBY_PLAYING_CLIENT )
             if 'NowPlayingItem' in playing_client:
-                nowplaying_item = playing_client['NowPlayingItem']
-                trackname = nowplaying_item['Name']
-                artist = "& ".join(nowplaying_item['Artists'])
-                album = nowplaying_item['Album']
-                return UnifiedData( trackname=trackname,
-                                    artist=artist,
-                                    album=album,
-                                    label=None,
-                                    image_url=None,
-                                    nowplaying=True)
+                if playing_client['NowPlayingItem']['MediaType'] == 'Audio':
+                    nowplaying_item = playing_client['NowPlayingItem']
+                    trackname = nowplaying_item['Name']
+                    artist = "& ".join(nowplaying_item['Artists'])
+                    album = nowplaying_item['Album']
+                    return UnifiedData( trackname=trackname,
+                                        artist=artist,
+                                        album=album,
+                                        label=None,
+                                        image_url=None,
+                                        nowplaying_type=UnifiedData.AUDIO)
+                else:
+                    return UnifiedData( trackname=None,
+                                        artist=None,
+                                        album=None,
+                                        label=None,
+                                        image_url=None,
+                                        nowplaying_type=UnifiedData.ELSE)
             else:
                 return UnifiedData( trackname=None,
                                     artist=None,
                                     album=None,
                                     label=None,
                                     image_url=None,
-                                    nowplaying=False)
+                                    nowplaying_type=None)
         except (KeyError, IndexError, StopIteration) as err:
             _LOGGER.error('Emby search failed to get meaningful results: {err}'.format(
                 err=err))

@@ -37,7 +37,7 @@ class LastFm(object):
         self.data = data
         return data
 
-    def _get_nowplaying(self, most_recent_track):
+    def _get_nowplaying_audio(self, most_recent_track):
         nowplaying = True
         try:
             attr = most_recent_track['@attr']['nowplaying']
@@ -61,13 +61,13 @@ class LastFm(object):
             image_url = most_recent_track['image'][3]['#text']
             if image_url == LASTFM_EMPTY_IMAGE_URL:
                 image_url = None
-            nowplaying = self._get_nowplaying(most_recent_track)
+            nowplaying_audio = self._get_nowplaying_audio(most_recent_track)
             return UnifiedData( trackname=trackname,
                                 artist=artist,
                                 album=album,
                                 label=None,
                                 image_url=image_url,
-                                nowplaying=nowplaying)
+                                nowplaying_type=UnifiedData.AUDIO)
         except (KeyError, IndexError) as err:
             _LOGGER.error('LastFM search failed to get meaningful results for URL [{url}]: {err}'.format(
                 url=url,

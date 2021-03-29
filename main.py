@@ -57,8 +57,8 @@ async def main(loop):
                 if parser.enrichment_required:
                     for enricher in [ e for _, e in data_modules['enrichers'].items() if e.enabled ]:
                         await enricher.enrich(data)
-                await display.redraw(httpclient, data)
-        display.update()
+                await display.redraw_detail(httpclient, data)
+        display.update(data)
         await asyncio.sleep(1)
 
 async def cleanup(loop, display, httpclient):

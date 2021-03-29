@@ -71,10 +71,13 @@ class DisplayController:
         self.root.geometry(f"{SCREEN_W}x{SCREEN_H}")
         self.root.bind("<Double-Button-1>", self.double_click_event)
 
+        # Set up the curtain frame
         self.curtain_frame = tk.Frame(self.root, bg="black", width=SCREEN_W, height=SCREEN_H)
         self.curtain_frame.grid(row=0, column=0, sticky="news")
 
-        # Set up the curtain frame
+        # Set up the idle frame
+        self.idle_frame = tk.Frame(self.root, bg="black", width=SCREEN_W, height=SCREEN_H)
+        self.idle_frame.grid(row=0, column=0, sticky="news")
         self.idle_last_update = time.time()
         clock_font = tkFont.Font(family="Helvetica", size=CLOCK_SIZE)
         weather_font = tkFont.Font(family="Helvetica", size=WEATHER_SIZE)
@@ -83,7 +86,7 @@ class DisplayController:
         self.weather_details = tk.StringVar()
         
         self.clock = tk.Label(
-            self.curtain_frame,
+            self.idle_frame,
             textvariable=self.clock_time,
             font=clock_font,
             borderwidth=0,
@@ -92,7 +95,7 @@ class DisplayController:
             bg="black"
         )
         self.weather = tk.Label(
-            self.curtain_frame,
+            self.idle_frame,
             textvariable=self.weather_details,
             font=weather_font,
             borderwidth=0,
@@ -151,6 +154,25 @@ class DisplayController:
         _LOGGER.info('Exiting...')
         os.kill(os.getpid(), signal.SIGQUIT)
 
+    def _set_frames(self, data):
+        if data is None or data == self.data:
+            return
+
+        if data.nowplaying_audio():
+            self.detail_frame.lift()
+            _LOGGER.info('Show Details frame...')
+        elif data.nowplaying_nonaudio():
+            self.curtain_frame.lift()
+            _LOGGER.info('Show Curtain frame (playing non-audio)...')
+        else:
+            if settings.GlobalConfig.ENABLE_CLOCK:
+                self.idle_frame.lift()
+                _LOGGER.info('Show Idle frame...')
+            else:
+                self.curtain_frame.lift()
+                _LOGGER.info('Show Curtain frame...')
+        self.data = data
+
     async def redraw_idle(self):
         if not settings.GlobalConfig.ENABLE_CLOCK:
             return
@@ -167,17 +189,20 @@ class DisplayController:
 
             if settings.GlobalConfig.ENABLE_WEATHER:
                 weather_data = openweather.get_weather_for_city()
-                self.weather_details.set("{temp}{units} ({desc})".format(
-                    temp=int(weather_data['main']['temp']),
-                    units=u'\u2103' if settings.OpenWeatherConfig.OPENWEATHER_UNITS == 'metric' else u'\u2109',
-                    desc=', '.join([ s['description'] for s in weather_data['weather'] ])
-                ))
-                self.weather.place(
-                    x=clock_x,
-                    y=clock_y+CLOCK_SIZE+WEATHER_SIZE
-                )
+                try:
+                    self.weather_details.set("{temp}{units} ({desc})".format(
+                        temp=int(weather_data['main']['temp']),
+                        units=u'\u2103' if settings.OpenWeatherConfig.OPENWEATHER_UNITS == 'metric' else u'\u2109',
+                        desc=', '.join([ s['description'] for s in weather_data['weather'] ])
+                    ))
+                    self.weather.place(
+                        x=clock_x,
+                        y=clock_y+CLOCK_SIZE+WEATHER_SIZE
+                    )
+                except KeyError as error:
+                    _LOGGER.error("Weather report got an error: %s", error)
 
-    async def redraw(self, httpclient, data):
+    async def redraw_detail(self, httpclient, data):
         if data is None or data == self.data:
             return
 
@@ -185,7 +210,7 @@ class DisplayController:
 
         artist_album_text = "?"
         trackname_text = "?"
-        if data.nowplaying:
+        if data.nowplaying_audio():
             trackname_text = data.trackname
             
             detail_prefix = None
@@ -198,23 +223,19 @@ class DisplayController:
             if data.label:
                 artist_album_text += ' • {label}'.format(label=data.label)
 
-            self.curtain_frame.lower(self.detail_frame)
             _LOGGER.info('Listening to [{trackname}] from [{artist_album}]'.format(
                 trackname=trackname_text,
                 artist_album=artist_album_text))
-            self.detail_frame.lift(self.curtain_frame)
             self.is_showing = True
         else:
             _LOGGER.info('Not listening to anything at the moment...')
-            self.curtain_frame.lift(self.detail_frame)
             self.is_showing = False
 
         self.track_name.set(trackname_text)
         self.artist_album.set(artist_album_text)
-        self.data = data
-        self.update()
 
-    def update(self):
+    def update(self, data):
+        self._set_frames(data)
         self.root.update_idletasks()
         self.root.update()
 
@@ -225,7 +246,7 @@ class DisplayController:
             image = image.resize((length, length), ImageTk.Image.LANCZOS)
             return ImageTk.PhotoImage(image)
         
-        if data.nowplaying:
+        if data.nowplaying_audio():
             image_data = await httpclient.get_image_data(data.image_url)
             if image_data:
                 image = Image.open(BytesIO(image_data))

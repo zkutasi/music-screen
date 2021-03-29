@@ -41,7 +41,7 @@ class Discogs(object):
 
     async def enrich(self, data):
         self.last_update = time.time()
-        if data and data.nowplaying:
+        if data and data.nowplaying_audio():
             resource_url = self._search(data.trackname, data.artist, data.album)
             if resource_url:
                 self._get_data_from_resource(resource_url, data)
