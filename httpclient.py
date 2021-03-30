@@ -26,11 +26,7 @@ def get_json_from_url(request_obj):
         if data:
             data = bytes(json.dumps(data), encoding="utf-8")
         result = urllib.request.urlopen(request_obj, data=data).read().decode()
-    except HTTPError as err:
-        _LOGGER.error('Got HTTP error for URL [{url}] :[{err}]'.format(
-            url=url,
-            err=err))
-    except URLError as err:
+    except (HTTPError, URLError, ConnectionResetError) as err:
         _LOGGER.error('Got error for URL [{url}] :[{err}]'.format(
             url=url,
             err=err))
