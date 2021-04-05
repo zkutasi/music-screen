@@ -29,7 +29,7 @@ class EmbyConfig(object):
     EMBY_ROOT_URL = 'http://htpc.home:8096'
     EMBY_USER = 'XXX'
     EMBY_PWD = 'XXX'
-    EMBY_PLAYING_CLIENT = 'Kodi EmbyCon'
+    EMBY_PLAYING_CLIENT = ['Kodi EmbyCon', 'Emby for Android']
 
 class OpenWeatherConfig(object):
     OPENWEATHER_APIKEY = 'XXX'

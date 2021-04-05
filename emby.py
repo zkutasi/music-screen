@@ -68,7 +68,7 @@ class Emby(object):
         obj = httpclient.get_json_from_url(requestobj)
 
         try:
-            playing_client = next( c for c in obj if c['Client'] == settings.EmbyConfig.EMBY_PLAYING_CLIENT )
+            playing_client = next( c for c in obj if c['Client'] in settings.EmbyConfig.EMBY_PLAYING_CLIENT )
             if 'NowPlayingItem' in playing_client:
                 if playing_client['NowPlayingItem']['MediaType'] == 'Audio':
                     nowplaying_item = playing_client['NowPlayingItem']
