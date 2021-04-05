@@ -37,7 +37,7 @@ class Discogs(object):
     def __init__(self):
         self.enabled = settings.GlobalConfig.ENABLE_DISCOGS
         if self.enabled:
-            self.last_update = time.time()
+            self.last_update = 0
 
     async def enrich(self, data):
         self.last_update = time.time()

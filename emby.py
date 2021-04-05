@@ -36,7 +36,7 @@ class Emby(object):
         if self.enabled:
             _LOGGER.debug('Using Emby URL [{url}]'.format(url=EMBY_ROOT_URL))
             self.polling_interval = settings.EmbyConfig.EMBY_POLLING_INTERVAL
-            self.last_update = time.time() - 10*self.polling_interval
+            self.last_update = 0
             self.data = None
             self.enrichment_required = True
             self.access_token = None

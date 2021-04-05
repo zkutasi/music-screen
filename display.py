@@ -78,7 +78,7 @@ class DisplayController:
         # Set up the idle frame
         self.idle_frame = tk.Frame(self.root, bg="black", width=SCREEN_W, height=SCREEN_H)
         self.idle_frame.grid(row=0, column=0, sticky="news")
-        self.idle_last_update = time.time()
+        self.idle_last_update = 0
         clock_font = tkFont.Font(family="Helvetica", size=CLOCK_SIZE)
         weather_font = tkFont.Font(family="Helvetica", size=WEATHER_SIZE)
         
@@ -148,7 +148,7 @@ class DisplayController:
 
         self.root.attributes("-fullscreen", True)
         self.root.config(cursor="none")
-        self.root.update()
+        self.update()
 
     def double_click_event(self, event):
         _LOGGER.info('Exiting...')
@@ -234,7 +234,7 @@ class DisplayController:
         self.track_name.set(trackname_text)
         self.artist_album.set(artist_album_text)
 
-    def update(self, data):
+    def update(self, data=None):
         self._set_frames(data)
         self.root.update_idletasks()
         self.root.update()

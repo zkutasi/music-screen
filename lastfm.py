@@ -26,7 +26,7 @@ class LastFm(object):
         if self.enabled:
             _LOGGER.debug('Using LastFM URL [{url}]'.format(url=LASTFM_RECENT_TRACKS_API_URL))
             self.polling_interval = settings.LastFmConfig.LASTFM_POLLING_INTERVAL
-            self.last_update = time.time() - 10*self.polling_interval
+            self.last_update = 0
             self.data = None
             self.enrichment_required = True
 
